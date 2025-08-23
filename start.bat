@@ -1,0 +1,9 @@
+@echo off
+echo Starting EduGen AI - Question Paper Generator...
+echo.
+echo Installing dependencies...
+npm install
+echo.
+echo Starting development server...
+npm start
+pause 
