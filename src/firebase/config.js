@@ -7,13 +7,13 @@ import { getStorage } from 'firebase/storage';
 // IMPORTANT: Make sure to copy the exact values from your Firebase Console
 // Firebase configuration for your project
 const firebaseConfig = {
-    apiKey: "AIzaSyC6UkCXOdkp8fnOMBgvZHoubJseHD1Icng",
-    authDomain: "question-paper-managemen-86623.firebaseapp.com",
-    projectId: "question-paper-managemen-86623",
-    storageBucket: "question-paper-managemen-86623.firebasestorage.app",
-    messagingSenderId: "115043146879",
-    appId: "1:115043146879:web:533d19b632d99b91ba334a",
-    measurementId: "G-BMHGX8HQ2B"
+    apiKey: "AIzaSyDXwDHqrR70W7csSmiJWDM8mgHmN3Ju3Us",
+    authDomain: "college-project-db237.firebaseapp.com",
+    projectId: "college-project-db237",
+    storageBucket: "college-project-db237.firebasestorage.app",
+    messagingSenderId: "810063967170",
+    appId: "1:810063967170:web:54da534f3a1ef8df255c5b",
+    measurementId: "G-78D9GY87RT"
 };
 
 // Initialize Firebase with error handling

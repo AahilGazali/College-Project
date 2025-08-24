@@ -7,6 +7,8 @@ import Register from './components/auth/Register';
 import Dashboard from './components/dashboard/Dashboard';
 import UploadDocuments from './components/upload/UploadDocuments';
 import QuestionGenerator from './components/generate/QuestionGenerator';
+import BuildPaper from './components/papers/BuildPaper';
+import MyPapers from './components/papers/MyPapers';
 import LandingPage from './components/landing/LandingPage';
 import ErrorBoundary from './components/ErrorBoundary';
 import Settings from './components/settings/Settings';
@@ -114,6 +116,24 @@ function App() {
               element={
                 <ProtectedRoute>
                   <QuestionGenerator />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/papers" 
+              element={
+                <ProtectedRoute>
+                  <BuildPaper />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/export" 
+              element={
+                <ProtectedRoute>
+                  <MyPapers />
                 </ProtectedRoute>
               } 
             />

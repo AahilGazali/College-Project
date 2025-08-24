@@ -4,15 +4,12 @@ import { useAuth } from '../../contexts/AuthContext';
 import { 
   Upload, 
   FileText, 
-  File, 
   X, 
   CheckCircle, 
-  AlertCircle,
-  Loader2,
-  Eye
+  Loader2
 } from 'lucide-react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { doc, setDoc, collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc } from 'firebase/firestore';
 import { storage, db } from '../../firebase/config';
 import toast from 'react-hot-toast';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -27,6 +24,8 @@ const UploadDocuments = () => {
   const [processing, setProcessing] = useState(false);
   const [extractedText, setExtractedText] = useState('');
   const [documentType, setDocumentType] = useState('syllabus');
+
+
 
   const onDrop = useCallback((acceptedFiles) => {
     const newFiles = acceptedFiles.map(file => ({
@@ -104,30 +103,107 @@ const UploadDocuments = () => {
   };
 
   const uploadToFirebase = async (file, extractedText) => {
-    const storageRef = ref(storage, `documents/${currentUser.uid}/${Date.now()}_${file.name}`);
-    await uploadBytes(storageRef, file);
-    const downloadURL = await getDownloadURL(storageRef);
+    try {
+      console.log('=== FIREBASE UPLOAD START ===');
+      console.log('File name:', file.name);
+      console.log('File size:', file.size, 'bytes');
+      console.log('File type:', file.type);
+      console.log('Current user:', currentUser?.uid);
+      console.log('Document type:', documentType);
+      
+      if (!currentUser?.uid) {
+        throw new Error('User not authenticated');
+      }
 
-    // Save document metadata to Firestore
-    const docData = {
-      userId: currentUser.uid,
-      fileName: file.name,
-      fileType: file.type,
-      fileSize: file.size,
-      downloadURL,
-      extractedText,
-      documentType,
-      uploadedAt: new Date().toISOString(),
-      status: 'processed'
-    };
+      // Test Firebase services
+      console.log('Testing Firebase services...');
+      console.log('Storage available:', !!storage);
+      console.log('Database available:', !!db);
+      console.log('Auth available:', !!currentUser);
 
-    await addDoc(collection(db, 'documents'), docData);
-    return downloadURL;
+      // Create a unique filename to avoid conflicts
+      const timestamp = Date.now();
+      const uniqueFileName = `${timestamp}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      const storageRef = ref(storage, `documents/${currentUser.uid}/${uniqueFileName}`);
+      
+      console.log('Storage reference created:', storageRef.fullPath);
+      
+      // Upload file to Firebase Storage
+      console.log('Starting file upload to Firebase Storage...');
+      const uploadResult = await uploadBytes(storageRef, file);
+      console.log('File uploaded to Storage successfully:', uploadResult);
+      
+      // Get download URL
+      console.log('Getting download URL...');
+      const downloadURL = await getDownloadURL(storageRef);
+      console.log('Download URL obtained:', downloadURL);
+
+      // Save document metadata to Firestore
+      const docData = {
+        userId: currentUser.uid,
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+        downloadURL,
+        extractedText: extractedText || 'No text extracted',
+        documentType,
+        uploadedAt: new Date().toISOString(),
+        status: 'processed',
+        storagePath: storageRef.fullPath
+      };
+
+      console.log('Saving to Firestore with data:', docData);
+      const docRef = await addDoc(collection(db, 'documents'), docData);
+      console.log('Document saved to Firestore with ID:', docRef.id);
+      
+      console.log('=== FIREBASE UPLOAD SUCCESS ===');
+      return { downloadURL, docId: docRef.id };
+    } catch (error) {
+      console.error('=== FIREBASE UPLOAD ERROR ===');
+      console.error('Error type:', error.constructor.name);
+      console.error('Error message:', error.message);
+      console.error('Error code:', error.code);
+      console.error('Error stack:', error.stack);
+      
+      // Check for specific Firebase errors
+      if (error.code === 'storage/unauthorized') {
+        throw new Error('Storage access denied. Please check Firebase Storage rules.');
+      } else if (error.code === 'storage/quota-exceeded') {
+        throw new Error('Storage quota exceeded.');
+      } else if (error.code === 'storage/retry-limit-exceeded') {
+        throw new Error('Upload failed after multiple retries.');
+      } else if (error.code === 'firestore/permission-denied') {
+        throw new Error('Firestore access denied. Please check Firestore rules.');
+      }
+      
+      throw new Error(`Firebase upload failed: ${error.message}`);
+    }
   };
 
   const handleUpload = async () => {
+    console.log('Upload process started');
+    console.log('Current user:', currentUser);
+    console.log('Uploaded files:', uploadedFiles);
+    
     if (uploadedFiles.length === 0) {
       toast.error('Please select files to upload');
+      return;
+    }
+
+    if (!currentUser?.uid) {
+      toast.error('Please log in to upload files');
+      return;
+    }
+
+    // Test Firebase connection
+    try {
+      console.log('Testing Firebase connection...');
+      console.log('Storage available:', !!storage);
+      console.log('Database available:', !!db);
+      console.log('User authenticated:', !!currentUser?.uid);
+    } catch (error) {
+      console.error('Firebase connection test failed:', error);
+      toast.error('Firebase connection failed. Please check your configuration.');
       return;
     }
 
@@ -137,6 +213,7 @@ const UploadDocuments = () => {
     try {
       for (let i = 0; i < uploadedFiles.length; i++) {
         const fileObj = uploadedFiles[i];
+        console.log(`Processing file ${i + 1}/${uploadedFiles.length}:`, fileObj.file.name);
         
         // Update status to processing
         setUploadedFiles(prev => prev.map(f => 
@@ -144,26 +221,60 @@ const UploadDocuments = () => {
         ));
 
         // Extract text
+        console.log('Extracting text from file...');
         const text = await processFile(fileObj);
+        console.log('Text extracted, length:', text.length);
         allExtractedText += text + '\n\n';
 
-        // Upload to Firebase
-        await uploadToFirebase(fileObj.file, text);
+                 // Upload to Firebase
+         console.log('Uploading to Firebase...');
+         try {
+           const uploadResult = await uploadToFirebase(fileObj.file, text);
+           console.log('Firebase upload completed:', uploadResult);
 
-        // Update status to completed
-        setUploadedFiles(prev => prev.map(f => 
-          f.id === fileObj.id ? { ...f, status: 'completed', progress: 100 } : f
-        ));
+           // Update status to completed
+           setUploadedFiles(prev => prev.map(f => 
+             f.id === fileObj.id ? { 
+               ...f, 
+               status: 'completed', 
+               progress: 100,
+               docId: uploadResult.docId 
+             } : f
+           ));
 
-        toast.success(`${fileObj.file.name} processed successfully`);
+           toast.success(`${fileObj.file.name} uploaded and processed successfully!`);
+         } catch (uploadError) {
+           console.error('Upload failed for file:', fileObj.file.name, uploadError);
+           
+           // Update status to failed
+           setUploadedFiles(prev => prev.map(f => 
+             f.id === fileObj.id ? { 
+               ...f, 
+               status: 'failed', 
+               progress: 0,
+               error: uploadError.message
+             } : f
+           ));
+           
+           toast.error(`Failed to upload ${fileObj.file.name}: ${uploadError.message}`);
+           throw uploadError; // Re-throw to stop processing other files
+         }
       }
 
       setExtractedText(allExtractedText);
-      toast.success('All files uploaded and processed successfully!');
+      toast.success('All files uploaded and processed successfully! You can now view them in the Question Generator.');
+      console.log('All files processed successfully');
+      
+      // Show success message with option to go to Question Generator
+      setTimeout(() => {
+        if (window.confirm('Files uploaded successfully! Would you like to go to the Question Generator to use these files?')) {
+          window.location.href = '/generate';
+        }
+      }, 1000);
       
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error('Failed to process files. Please try again.');
+      toast.error(`Failed to process files: ${error.message}`);
     } finally {
       setProcessing(false);
     }
@@ -178,21 +289,25 @@ const UploadDocuments = () => {
         </p>
       </div>
 
-      {/* Document Type Selection */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Document Type
-        </label>
-        <select
-          value={documentType}
-          onChange={(e) => setDocumentType(e.target.value)}
-          className="block w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-        >
-          <option value="syllabus">Syllabus</option>
-          <option value="pyq">Previous Year Questions</option>
-          <option value="reference">Reference Material</option>
-        </select>
-      </div>
+             {/* Document Type Selection */}
+       <div className="mb-6">
+         <label className="block text-sm font-medium text-gray-700 mb-2">
+           Document Type
+         </label>
+         <select
+           value={documentType}
+           onChange={(e) => setDocumentType(e.target.value)}
+           className="block w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+         >
+           <option value="syllabus">Syllabus</option>
+           <option value="pyq">Previous Year Questions</option>
+           <option value="reference">Reference Material</option>
+         </select>
+       </div>
+
+       
+
+      
 
       {/* Dropzone */}
       <div
@@ -249,9 +364,17 @@ const UploadDocuments = () => {
                       <span className="text-xs text-blue-500">Processing...</span>
                     </div>
                   )}
-                  {fileObj.status === 'completed' && (
-                    <CheckCircle className="h-5 w-5 text-green-500" />
-                  )}
+                                     {fileObj.status === 'completed' && (
+                     <CheckCircle className="h-5 w-5 text-green-500" />
+                   )}
+                   {fileObj.status === 'failed' && (
+                     <div className="flex items-center space-x-2">
+                       <span className="text-xs text-red-500">Failed</span>
+                       <span className="text-xs text-red-400" title={fileObj.error}>
+                         {fileObj.error?.substring(0, 30)}...
+                       </span>
+                     </div>
+                   )}
                   <button
                     onClick={() => removeFile(fileObj.id)}
                     className="text-red-500 hover:text-red-700"
@@ -285,23 +408,41 @@ const UploadDocuments = () => {
         </div>
       )}
 
-      {/* Extracted Text Preview */}
-      {extractedText && (
-        <div className="mt-8">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">Extracted Text Preview</h3>
-            <button
-              onClick={() => setExtractedText('')}
-              className="text-sm text-gray-500 hover:text-gray-700"
-            >
-              Clear
-            </button>
-          </div>
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 max-h-96 overflow-y-auto">
-            <pre className="text-sm text-gray-700 whitespace-pre-wrap">{extractedText}</pre>
-          </div>
-        </div>
-      )}
+             {/* Extracted Text Preview */}
+       {extractedText && (
+         <div className="mt-8">
+           <div className="flex items-center justify-between mb-4">
+             <h3 className="text-lg font-medium text-gray-900">Extracted Text Preview</h3>
+             <div className="flex space-x-2">
+               <button
+                 onClick={() => setExtractedText('')}
+                 className="text-sm text-gray-500 hover:text-gray-700"
+               >
+                 Clear
+               </button>
+               <button
+                 onClick={() => {
+                   setUploadedFiles([]);
+                   setExtractedText('');
+                   toast.success('Ready for new uploads!');
+                 }}
+                 className="text-sm text-indigo-600 hover:text-indigo-800"
+               >
+                 Upload More Files
+               </button>
+               <button
+                 onClick={() => window.location.href = '/generate'}
+                 className="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+               >
+                 Go to Question Generator
+               </button>
+             </div>
+           </div>
+           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 max-h-96 overflow-y-auto">
+             <pre className="text-sm text-gray-700 whitespace-pre-wrap">{extractedText}</pre>
+           </div>
+         </div>
+       )}
     </div>
   );
 };

@@ -1,27 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { 
   FileText, 
-  Upload, 
   Brain, 
   FileDown, 
   LogOut, 
-  User,
   BookOpen,
   Settings,
   BarChart3,
   CheckCircle,
-  Clock,
-  ArrowRight,
-  Plus
+  Clock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const Dashboard = () => {
-  const { currentUser, userRole, logout } = useAuth();
+  const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
-  const [stats, setStats] = useState({
+  const [stats] = useState({
     totalPapers: 24,
     questionsGenerated: 486,
     syllabusUploaded: 8,

@@ -1,182 +1,111 @@
-import React, { useState } from 'react';
-import { auth, db } from '../firebase/config';
-import { signInAnonymously, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { storage, db, auth } from '../firebase/config';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { collection, addDoc, getDocs } from 'firebase/firestore';
+import toast from 'react-hot-toast';
 
 const FirebaseTest = () => {
-  const [status, setStatus] = useState('Ready to test Firebase connection...');
-  const [error, setError] = useState(null);
-  const [testResults, setTestResults] = useState([]);
+  const { currentUser } = useAuth();
+  const [testResults, setTestResults] = useState({});
 
-  const addTestResult = (test, result, error = null) => {
-    setTestResults(prev => [...prev, { test, result, error, timestamp: new Date().toLocaleTimeString() }]);
-  };
-
-  const testFirebaseConnection = async () => {
-    setTestResults([]);
-    setError(null);
+  const runTests = async () => {
+    const results = {};
     
     try {
-      // Test 1: Basic Firebase initialization
-      setStatus('Testing Firebase initialization...');
-      addTestResult('Firebase Init', 'Checking if Firebase is properly initialized...');
+      // Test 1: Check if user is authenticated
+      results.auth = currentUser ? `Authenticated: ${currentUser.uid}` : 'Not authenticated';
       
-      if (auth && db) {
-        addTestResult('Firebase Init', '✅ Firebase services initialized successfully');
+      // Test 2: Check Firebase services
+      results.storage = storage ? 'Storage service available' : 'Storage service not available';
+      results.db = db ? 'Database service available' : 'Database service not available';
+      
+      // Test 3: Try to write to Firestore
+      if (currentUser && db) {
+        try {
+          const testDoc = {
+            userId: currentUser.uid,
+            test: true,
+            timestamp: new Date().toISOString()
+          };
+          const docRef = await addDoc(collection(db, 'test'), testDoc);
+          results.firestoreWrite = `Success: ${docRef.id}`;
+          
+          // Clean up test document
+          // Note: In production, you'd want to delete this
+        } catch (error) {
+          results.firestoreWrite = `Error: ${error.message}`;
+        }
       } else {
-        addTestResult('Firebase Init', '❌ Firebase services not initialized');
-        return;
+        results.firestoreWrite = 'Skipped: No user or DB';
       }
-
-      // Test 2: Anonymous authentication
-      setStatus('Testing anonymous authentication...');
-      addTestResult('Anonymous Auth', 'Attempting anonymous sign-in...');
       
-      const result = await signInAnonymously(auth);
-      addTestResult('Anonymous Auth', `✅ Success! User ID: ${result.user.uid}`);
-      
-      // Sign out immediately
-      await auth.signOut();
-      addTestResult('Anonymous Auth', '✅ Signed out successfully');
-
-      // Test 3: Firestore connection
-      setStatus('Testing Firestore connection...');
-      addTestResult('Firestore', 'Testing Firestore write operation...');
-      
-      const testDoc = doc(db, 'test', 'connection-test');
-      await setDoc(testDoc, { 
-        test: true, 
-        timestamp: new Date().toISOString(),
-        message: 'Firestore connection test'
-      });
-      addTestResult('Firestore', '✅ Write operation successful');
-      
-      // Test read operation
-      const readResult = await getDoc(testDoc);
-      if (readResult.exists()) {
-        addTestResult('Firestore', '✅ Read operation successful');
+      // Test 4: Try to read from Firestore
+      if (currentUser && db) {
+        try {
+          const querySnapshot = await getDocs(collection(db, 'documents'));
+          results.firestoreRead = `Success: ${querySnapshot.size} documents found`;
+        } catch (error) {
+          results.firestoreRead = `Error: ${error.message}`;
+        }
       } else {
-        addTestResult('Firestore', '❌ Read operation failed');
+        results.firestoreRead = 'Skipped: No user or DB';
       }
-
-      setStatus('All tests completed successfully!');
       
-    } catch (err) {
-      setError(`Firebase test failed: ${err.message}`);
-      setStatus('Connection failed');
-      addTestResult('Error', '❌', err.message);
-      console.error('Firebase test error:', err);
+      // Test 5: Try to upload a small test file
+      if (currentUser && storage) {
+        try {
+          const testBlob = new Blob(['Test file content'], { type: 'text/plain' });
+          const testFile = new File([testBlob], 'test.txt', { type: 'text/plain' });
+          const storageRef = ref(storage, `test/${currentUser.uid}/test.txt`);
+          await uploadBytes(storageRef, testFile);
+          const downloadURL = await getDownloadURL(storageRef);
+          results.storageUpload = `Success: ${downloadURL}`;
+        } catch (error) {
+          results.storageUpload = `Error: ${error.message}`;
+        }
+      } else {
+        results.storageUpload = 'Skipped: No user or Storage';
+      }
+      
+    } catch (error) {
+      results.general = `General error: ${error.message}`;
     }
-  };
-
-  const testEmailAuth = async () => {
-    const testEmail = `test-${Date.now()}@example.com`;
-    const testPassword = 'testpassword123';
     
-    try {
-      setStatus('Testing email/password authentication...');
-      addTestResult('Email Auth', `Creating test user: ${testEmail}`);
-      
-      // Test registration
-      const userCredential = await createUserWithEmailAndPassword(auth, testEmail, testPassword);
-      addTestResult('Email Auth', `✅ User created: ${userCredential.user.uid}`);
-      
-      // Test login
-      await signInWithEmailAndPassword(auth, testEmail, testPassword);
-      addTestResult('Email Auth', '✅ Login successful');
-      
-      // Sign out
-      await auth.signOut();
-      addTestResult('Email Auth', '✅ Sign out successful');
-      
-      setStatus('Email authentication test completed!');
-      
-    } catch (err) {
-      setError(`Email auth test failed: ${err.message}`);
-      addTestResult('Email Auth', '❌', err.message);
-      console.error('Email auth test error:', err);
-    }
+    setTestResults(results);
+    console.log('Firebase test results:', results);
   };
 
-  const clearResults = () => {
-    setTestResults([]);
-    setError(null);
-    setStatus('Ready to test Firebase connection...');
-  };
+  useEffect(() => {
+    runTests();
+  }, [currentUser]);
 
   return (
-    <div className="p-6 max-w-4xl mx-auto mt-8 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4">Firebase Connection Debugger</h2>
+    <div className="max-w-4xl mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-4">Firebase Connection Test</h1>
       
-      <div className="mb-6">
-        <p className="text-sm text-gray-600 mb-4">
-          This tool will help debug Firebase connection issues. Click the buttons below to test different Firebase services.
-        </p>
-        
-        <div className="flex gap-4 mb-4">
-          <button 
-            onClick={testFirebaseConnection}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          >
-            Test Basic Connection
-          </button>
-          
-          <button 
-            onClick={testEmailAuth}
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-          >
-            Test Email Auth
-          </button>
-          
-          <button 
-            onClick={clearResults}
-            className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-          >
-            Clear Results
-          </button>
-        </div>
-        
-        <div className="mb-4">
-          <p className="text-sm font-medium text-gray-700">Status: {status}</p>
-          {error && (
-            <p className="text-sm text-red-600 mt-2">{error}</p>
-          )}
-        </div>
-      </div>
-
-      {testResults.length > 0 && (
-        <div className="border rounded-lg p-4">
-          <h3 className="text-lg font-semibold mb-3">Test Results:</h3>
-          <div className="space-y-2">
-            {testResults.map((result, index) => (
-              <div key={index} className="flex items-start gap-2 text-sm">
-                <span className="font-mono text-xs text-gray-500 min-w-[80px]">
-                  {result.timestamp}
-                </span>
-                <span className="font-medium min-w-[120px]">{result.test}:</span>
-                <span className={result.error ? 'text-red-600' : 'text-gray-700'}>
-                  {result.result}
-                </span>
-                {result.error && (
-                  <div className="text-red-500 text-xs mt-1 ml-4">
-                    Error: {result.error}
-                  </div>
-                )}
-              </div>
-            ))}
+      <button
+        onClick={runTests}
+        className="mb-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+      >
+        Run Tests
+      </button>
+      
+      <div className="bg-gray-50 p-4 rounded-lg">
+        <h2 className="text-lg font-semibold mb-2">Test Results:</h2>
+        {Object.entries(testResults).map(([test, result]) => (
+          <div key={test} className="mb-2">
+            <span className="font-medium">{test}:</span> {result}
           </div>
-        </div>
-      )}
-
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-        <h3 className="text-lg font-semibold mb-2">Troubleshooting Tips:</h3>
-        <ul className="text-sm text-gray-600 space-y-1">
-          <li>• Make sure Authentication is enabled in Firebase Console</li>
-          <li>• Check if Firestore Database is created</li>
-          <li>• Verify the API key is correct</li>
-          <li>• Ensure your Firebase project is not in a restricted region</li>
-          <li>• Check browser console for additional error details</li>
-        </ul>
+        ))}
+      </div>
+      
+      <div className="mt-4 bg-yellow-50 p-4 rounded-lg">
+        <h2 className="text-lg font-semibold mb-2">Debug Info:</h2>
+        <p><strong>Current User:</strong> {currentUser ? currentUser.uid : 'None'}</p>
+        <p><strong>Storage:</strong> {storage ? 'Available' : 'Not available'}</p>
+        <p><strong>Database:</strong> {db ? 'Available' : 'Not available'}</p>
+        <p><strong>Auth:</strong> {auth ? 'Available' : 'Not available'}</p>
       </div>
     </div>
   );

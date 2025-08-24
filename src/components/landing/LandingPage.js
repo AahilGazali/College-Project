@@ -7,10 +7,6 @@ import {
   Zap, 
   Users, 
   Download,
-  Upload,
-  Target,
-  FileDown,
-  CheckCircle,
   ArrowRight,
   Play
 } from 'lucide-react';
