@@ -94,8 +94,22 @@ An AI-powered question paper generation system for college faculty, featuring Bl
      appId: "your-app-id"
    };
    ```
+   
+   **⚠️ IMPORTANT**: If you get "Firebase: Error (auth/api-key-not-valid)" error, follow the detailed setup guide in `FIREBASE_SETUP.md`
 
-4. **Firestore Security Rules**
+4. **Environment Variables (Recommended)**
+   Create a `.env` file in the project root with your Firebase credentials:
+   ```env
+   REACT_APP_FIREBASE_API_KEY=your_api_key_here
+   REACT_APP_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+   REACT_APP_FIREBASE_PROJECT_ID=your_project_id
+   REACT_APP_FIREBASE_STORAGE_BUCKET=your_project_id.appspot.com
+   REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+   REACT_APP_FIREBASE_APP_ID=your_app_id
+   REACT_APP_FIREBASE_MEASUREMENT_ID=your_measurement_id
+   ```
+
+5. **Firestore Security Rules**
    ```javascript
    rules_version = '2';
    service cloud.firestore {
@@ -131,7 +145,7 @@ An AI-powered question paper generation system for college faculty, featuring Bl
    ```
 
 7. **Open your browser**
-   Navigate to `http://localhost:3000`
+   Navigate to `http://localhost:3000` 
 
 ## 🏗 Project Structure
 

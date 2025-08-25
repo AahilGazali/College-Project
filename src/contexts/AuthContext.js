@@ -27,24 +27,41 @@ export const AuthProvider = ({ children }) => {
   // Sign up function
   const signup = async (email, password, name, role) => {
     try {
+      console.log('AuthContext: Starting signup process...');
+      console.log('AuthContext: Email:', email);
+      console.log('AuthContext: Name:', name);
+      console.log('AuthContext: Role:', role);
+      console.log('AuthContext: Auth object:', auth);
+      console.log('AuthContext: DB object:', db);
+      
+      console.log('AuthContext: Creating user with email and password...');
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+      console.log('AuthContext: User created successfully:', user.uid);
       
-      // Update profile with display name
+      console.log('AuthContext: Updating profile with display name...');
       await updateProfile(user, { displayName: name });
+      console.log('AuthContext: Profile updated successfully');
       
-      // Store user data in Firestore
-      await setDoc(doc(db, 'users', user.uid), {
+      console.log('AuthContext: Storing user data in Firestore...');
+      const userData = {
         uid: user.uid,
         email: user.email,
         name: name,
         role: role, // 'admin' or 'faculty'
         createdAt: new Date().toISOString(),
         isActive: true
-      });
+      };
+      console.log('AuthContext: User data to store:', userData);
+      
+      await setDoc(doc(db, 'users', user.uid), userData);
+      console.log('AuthContext: User data stored in Firestore successfully');
       
       return user;
     } catch (error) {
+      console.error('AuthContext: Signup error:', error);
+      console.error('AuthContext: Error code:', error.code);
+      console.error('AuthContext: Error message:', error.message);
       throw error;
     }
   };

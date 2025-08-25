@@ -2,13 +2,13 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { DashboardProvider } from './contexts/DashboardContext';
+import { auth, db } from './firebase/config';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import Dashboard from './components/dashboard/Dashboard';
 import UploadDocuments from './components/upload/UploadDocuments';
 import QuestionGenerator from './components/generate/QuestionGenerator';
-import BuildPaper from './components/papers/BuildPaper';
-import MyPapers from './components/papers/MyPapers';
 import LandingPage from './components/landing/LandingPage';
 import ErrorBoundary from './components/ErrorBoundary';
 import Settings from './components/settings/Settings';
@@ -17,6 +17,9 @@ import ConfigChecker from './components/ConfigChecker';
 import FirebaseDiagnostic from './components/FirebaseDiagnostic';
 import FirebaseSetupGuide from './components/FirebaseSetupGuide';
 import FirebaseConfigUpdater from './components/FirebaseConfigUpdater';
+import FirebaseReadyCheck from './components/FirebaseReadyCheck';
+import SmoothScroll from './components/SmoothScroll';
+import PaperManagement from './components/papers/PaperManagement';
 import './App.css';
 
 // Protected Route Component
@@ -54,100 +57,97 @@ function App() {
     <ErrorBoundary>
       <Router>
         <AuthProvider>
-          <div className="App">
-            <Toaster
-              position="top-right"
-              toastOptions={{
-                duration: 4000,
-                style: {
-                  background: '#363636',
-                  color: '#fff',
-                },
-                success: {
-                  duration: 3000,
-                  iconTheme: {
-                    primary: '#10B981',
-                    secondary: '#fff',
-                  },
-                },
-                error: {
-                  duration: 4000,
-                  iconTheme: {
-                    primary: '#EF4444',
-                    secondary: '#fff',
-                  },
-                },
-              }}
-            />
-          
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/test" element={<FirebaseTest />} />
-            <Route path="/config" element={<ConfigChecker />} />
-            <Route path="/diagnostic" element={<FirebaseDiagnostic />} />
-            <Route path="/setup" element={<FirebaseSetupGuide />} />
-            <Route path="/config-updater" element={<FirebaseConfigUpdater />} />
-            
-            {/* Protected Routes */}
-            <Route 
-              path="/dashboard" 
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/upload" 
-              element={
-                <ProtectedRoute>
-                  <UploadDocuments />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/generate" 
-              element={
-                <ProtectedRoute>
-                  <QuestionGenerator />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/papers" 
-              element={
-                <ProtectedRoute>
-                  <BuildPaper />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/export" 
-              element={
-                <ProtectedRoute>
-                  <MyPapers />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/admin" 
-              element={
-                <AdminRoute>
-                  <Settings />
-                </AdminRoute>
-              } 
-            />
-          </Routes>
-          </div>
+          <DashboardProvider>
+            <FirebaseReadyCheck>
+              <SmoothScroll>
+              <div className="App">
+                <Toaster
+                  position="top-right"
+                  toastOptions={{
+                    duration: 4000,
+                    style: {
+                      background: '#363636',
+                      color: '#fff',
+                    },
+                    success: {
+                      duration: 3000,
+                      iconTheme: {
+                        primary: '#10B981',
+                        secondary: '#fff',
+                      },
+                    },
+                    error: {
+                      duration: 4000,
+                      iconTheme: {
+                        primary: '#EF4444',
+                        secondary: '#fff',
+                      },
+                    },
+                  }}
+                />
+              
+              <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/test" element={<FirebaseTest />} />
+              <Route path="/config" element={<ConfigChecker />} />
+              <Route path="/diagnostic" element={<FirebaseDiagnostic />} />
+              <Route path="/setup" element={<FirebaseSetupGuide />} />
+              <Route path="/config-updater" element={<FirebaseConfigUpdater />} />
+              
+              {/* Protected Routes */}
+              <Route 
+                path="/dashboard" 
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/upload" 
+                element={
+                  <ProtectedRoute>
+                    <UploadDocuments />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/generate" 
+                element={
+                  <ProtectedRoute>
+                    <QuestionGenerator />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/papers" 
+                element={
+                  <ProtectedRoute>
+                    <PaperManagement />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/admin" 
+                element={
+                  <AdminRoute>
+                    <Settings />
+                  </AdminRoute>
+                } 
+              />
+                        </Routes>
+              </div>
+            </SmoothScroll>
+          </FirebaseReadyCheck>
+            </DashboardProvider>
         </AuthProvider>
       </Router>
     </ErrorBoundary>

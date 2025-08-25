@@ -1,7 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Brain, 
   BookOpen, 
   FileText, 
   Zap, 
@@ -10,6 +9,8 @@ import {
   ArrowRight,
   Play
 } from 'lucide-react';
+import ThreeJSBackground from '../ThreeJSBackground';
+import BookIcon from '../icons/BookIcon';
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ const LandingPage = () => {
       description: "Upload syllabus in PDF or text format. Our OCR technology extracts topics and subtopics automatically."
     },
     {
-      icon: Brain,
+      icon: BookIcon,
       title: "Bloom's Taxonomy Integration",
       description: "Generate questions across all BT levels: Remembering, Understanding, Applying, Analyzing, Evaluating, Creating."
     },
@@ -51,22 +52,26 @@ const LandingPage = () => {
     {
       step: "01",
       title: "Upload Content",
-      description: "Upload your syllabus and previous year questions in PDF or text format."
+      description: "Upload your syllabus and previous year questions in PDF or text format.",
+      icon: BookOpen
     },
     {
       step: "02",
       title: "AI Processing",
-      description: "Our AI extracts topics, analyzes content, and maps to Bloom's Taxonomy levels."
+      description: "Our AI extracts topics, analyzes content, and maps to Bloom's Taxonomy levels.",
+      icon: BookIcon
     },
     {
       step: "03",
       title: "Generate Questions",
-      description: "Select topics, difficulty levels, and generate comprehensive question sets."
+      description: "Select topics, difficulty levels, and generate comprehensive question sets.",
+      icon: Zap
     },
     {
       step: "04",
       title: "Export Paper",
-      description: "Review, edit, and export your question paper as a professional PDF."
+      description: "Review, edit, and export your question paper as a professional PDF.",
+      icon: Download
     }
   ];
 
@@ -89,27 +94,38 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-primary relative overflow-hidden">
+      {/* Three.js Animated Background */}
+      <ThreeJSBackground 
+        particleCount={150} 
+        speed={0.3} 
+        size={3} 
+        opacity={0.4}
+        className="absolute inset-0 -z-10"
+      />
+      
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="nav-gradient relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
-                <Brain className="h-6 w-6 text-white" />
-              </div>
-              <span className="text-2xl font-bold text-gray-900">EduGen AI</span>
+                                            <div className="h-10 w-10 bg-gradient-secondary rounded-lg flex items-center justify-center shadow-primary animate-scale-in">
+                                <BookIcon className="h-6 w-6 text-white" />
+                              </div>
+              <span className="text-2xl font-bold text-gradient animate-fade-in">EduGen AI</span>
             </div>
+            
             <div className="flex items-center space-x-4">
               <button
                 onClick={handleLogin}
-                className="px-6 py-2 text-gray-700 hover:text-gray-900 font-medium"
+                className="nav-item text-primary-200 hover:text-primary-100 font-medium transition-all duration-300 animate-slide-right"
               >
-                Login
+                Sign In
               </button>
               <button
                 onClick={handleGetStarted}
-                className="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 font-medium transition-colors"
+                className="bg-gradient-secondary text-white px-6 py-2 rounded-lg font-medium hover:bg-gradient-accent transition-all duration-300 shadow-primary hover:shadow-primary-lg transform hover:-translate-y-1 animate-slide-right"
+                style={{ animationDelay: '0.1s' }}
               >
                 Get Started
               </button>
@@ -119,64 +135,62 @@ const LandingPage = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="text-center">
-            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              AI-Powered Question Paper Generation
-            </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Transform your syllabus into comprehensive question papers using advanced AI. 
-              Generate questions across all Bloom's Taxonomy levels with intelligent PYQ referencing.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button
-                onClick={handleGetStarted}
-                className="px-8 py-4 bg-gray-900 text-white rounded-lg hover:bg-gray-800 font-semibold text-lg transition-colors flex items-center justify-center"
-              >
-                Start Creating Questions
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </button>
-              <button className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-lg hover:border-gray-400 font-semibold text-lg transition-colors flex items-center justify-center">
-                <Play className="mr-2 h-5 w-5" />
-                View Demo
-              </button>
-            </div>
+      <section className="relative py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto text-center">
+          <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight animate-fade-in">
+            Generate AI-Powered
+            <span className="block text-gradient gradient-animate">Question Papers</span>
+          </h1>
+          <p className="text-xl text-gray-200 mb-8 max-w-3xl mx-auto animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            Transform your teaching with intelligent question generation. Upload syllabus, 
+            get AI-powered questions mapped to Bloom's Taxonomy, and create professional papers in minutes.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            <button
+              onClick={handleGetStarted}
+              className="btn-primary px-8 py-4 rounded-xl text-lg font-semibold"
+            >
+              <span>Start Generating Questions</span>
+              <ArrowRight className="inline-block ml-2 h-5 w-5" />
+            </button>
+            <button
+              onClick={handleLogin}
+              className="border-2 border-white/30 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300 backdrop-blur-sm"
+            >
+              View Demo
+              <Play className="inline-block ml-2 h-5 w-5" />
+            </button>
           </div>
-        </div>
-        
-        {/* Background decoration */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-200 rounded-full opacity-20"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-200 rounded-full opacity-20"></div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Powerful Features for Educators
+      <section className="py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16 animate-fade-in">
+            <h2 className="text-4xl font-bold text-white mb-4">
+              Why Choose EduGen AI?
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Everything you need to create comprehensive, AI-powered question papers
+            <p className="text-xl text-gray-200 max-w-2xl mx-auto">
+              Our platform combines cutting-edge AI with educational best practices 
+              to revolutionize question paper generation.
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100"
+              <div 
+                key={index} 
+                className="card-gradient p-8 rounded-2xl hover:transform hover:-translate-y-2 transition-all duration-300 animate-scale-in"
+                style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center mb-6">
-                  <feature.icon className="h-6 w-6 text-white" />
+                <div className="h-16 w-16 bg-gradient-secondary rounded-xl flex items-center justify-center mb-6 shadow-primary">
+                  <feature.icon className="h-8 w-8 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                <h3 className="text-xl font-semibold text-gray-800 mb-3">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-gray-600">
                   {feature.description}
                 </p>
               </div>
@@ -185,104 +199,98 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+      {/* How It Works Section with Better Step Separation */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-secondary relative">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-radial"></div>
+        </div>
+        
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="text-center mb-16 animate-fade-in">
+            <h2 className="text-4xl font-bold text-white mb-4">
               How It Works
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Simple 4-step process to create professional question papers
+            <p className="text-xl text-gray-200 max-w-2xl mx-auto">
+              Get started in just four simple steps and create your first 
+              AI-generated question paper in minutes.
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {steps.map((step, index) => (
-              <div key={index} className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-6 text-white font-bold text-lg">
-                  {step.step}
+              <div key={index} className="text-center relative animate-fade-in" style={{ animationDelay: `${index * 0.2}s` }}>
+                {/* Step Number with Enhanced Design */}
+                <div className="relative mx-auto mb-6">
+                  <div className="h-24 w-24 bg-gradient-primary rounded-full flex items-center justify-center mx-auto border-4 border-white/20 shadow-primary-lg">
+                    <span className="text-3xl font-bold text-white">{step.step}</span>
+                  </div>
+                  {/* Icon Overlay */}
+                  <div className="absolute -bottom-2 -right-2 h-12 w-12 bg-gradient-secondary rounded-full flex items-center justify-center shadow-primary border-2 border-white">
+                    <step.icon className="h-6 w-6 text-white" />
+                  </div>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                
+                <h3 className="text-xl font-semibold text-white mb-3">
                   {step.title}
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-gray-200">
                   {step.description}
                 </p>
+                
+                {/* Step Separator (except for last step) */}
+                {index < steps.length - 1 && (
+                  <div className="hidden lg:block absolute top-12 -right-4 w-8 h-0.5 bg-gradient-primary transform rotate-90"></div>
+                )}
               </div>
+            ))}
+          </div>
+          
+          {/* Enhanced Step Separators for Mobile */}
+          <div className="lg:hidden mt-8">
+            {steps.slice(0, -1).map((_, index) => (
+              <div key={index} className="step-separator mx-auto w-32"></div>
             ))}
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-purple-600 to-blue-600">
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold text-white mb-6">
-            Ready to Transform Your Question Paper Creation?
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-soft">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-4xl font-bold text-white mb-6 animate-fade-in">
+            Ready to Transform Your Teaching?
           </h2>
-          <p className="text-xl text-purple-100 mb-8">
-            Join thousands of educators who are already using AI to create better assessments
+          <p className="text-xl text-gray-200 mb-8 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            Join thousands of educators who are already using EduGen AI to create 
+            engaging, comprehensive question papers that enhance student learning.
           </p>
           <button
             onClick={handleGetStarted}
-            className="px-8 py-4 bg-white text-purple-600 rounded-lg hover:bg-gray-100 font-semibold text-lg transition-colors"
+            className="btn-primary px-10 py-4 rounded-xl text-xl font-semibold animate-fade-in"
+            style={{ animationDelay: '0.4s' }}
           >
-            Get Started Free
+            <span>Start Your Free Trial</span>
+            <ArrowRight className="inline-block ml-3 h-6 w-6" />
           </button>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-                  <Brain className="h-5 w-5 text-white" />
-                </div>
-                <span className="text-xl font-bold">EduGen AI</span>
-              </div>
-              <p className="text-gray-400">
-                Revolutionizing education with AI-powered question generation and assessment tools.
-              </p>
+      <footer className="bg-primary-dark py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto text-center">
+          <div className="flex items-center justify-center space-x-3 mb-6">
+            <div className="h-8 w-8 bg-gradient-secondary rounded-lg flex items-center justify-center">
+              <Brain className="h-5 w-5 text-white" />
             </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Features</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>Question Generation</li>
-                <li>Syllabus Processing</li>
-                <li>PYQ Integration</li>
-                <li>PDF Export</li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Support</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>Documentation</li>
-                <li>Help Center</li>
-                <li>Contact Us</li>
-                <li>Training</li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Company</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>About Us</li>
-                <li>Privacy Policy</li>
-                <li>Terms of Service</li>
-                <li>Blog</li>
-              </ul>
-            </div>
+            <span className="text-xl font-bold text-white">EduGen AI</span>
           </div>
-          
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 EduGen AI. All rights reserved.</p>
-          </div>
+          <p className="text-gray-300 mb-4">
+            Empowering educators with AI-powered question generation technology.
+          </p>
+          <p className="text-gray-400 text-sm">
+            © 2024 EduGen AI. All rights reserved.
+          </p>
         </div>
       </footer>
     </div>
