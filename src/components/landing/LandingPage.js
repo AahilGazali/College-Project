@@ -7,7 +7,8 @@ import {
   Users, 
   Download,
   ArrowRight,
-  Play
+  Play,
+  Brain
 } from 'lucide-react';
 import ThreeJSBackground from '../ThreeJSBackground';
 import BookIcon from '../icons/BookIcon';

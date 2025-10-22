@@ -16,7 +16,8 @@ import {
   Target,
   BarChart3,
   Zap,
-  AlertCircle
+  AlertCircle,
+  Brain
 } from 'lucide-react';
 import ThreeJSBackground from '../ThreeJSBackground';
 import { useDashboard } from '../../contexts/DashboardContext';

@@ -12,7 +12,8 @@ import {
   Clock,
   TrendingUp,
   Calendar,
-  Target
+  Target,
+  Brain
 } from 'lucide-react';
 import ThreeJSBackground from '../ThreeJSBackground';
 import { useDashboard } from '../../contexts/DashboardContext';
