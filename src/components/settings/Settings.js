@@ -24,9 +24,9 @@ const Settings = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   
   const [profileData, setProfileData] = useState({
-    name: currentUser?.displayName || '',
+    name: currentUser?.name || '',
     email: currentUser?.email || '',
-    role: 'faculty',
+    role: currentUser?.role || 'faculty',
     institution: 'University of Technology',
     department: 'Computer Science'
   });

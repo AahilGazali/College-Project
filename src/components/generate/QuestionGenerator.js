@@ -21,11 +21,13 @@ import {
 } from 'lucide-react';
 import ThreeJSBackground from '../ThreeJSBackground';
 import { useDashboard } from '../../contexts/DashboardContext';
+import { useAuth } from '../../contexts/AuthContext';
 import BookIcon from '../icons/BookIcon';
 
 const QuestionGenerator = () => {
   const navigate = useNavigate();
   const { addPaper } = useDashboard();
+  const { currentUser } = useAuth();
   const [activeStep, setActiveStep] = useState(1);
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
@@ -213,7 +215,7 @@ const QuestionGenerator = () => {
           subject: 'CS301 - Data Structures',
           marks: 100,
           duration: '3 hours',
-          createdBy: 'Dr. Aahil Gazali',
+          createdBy: currentUser?.name || 'User',
           createdAt: new Date().toISOString(),
           modifiedAt: new Date().toISOString(),
           description: 'Comprehensive final examination covering arrays, linked lists, trees, graphs, and sorting algorithms.',
@@ -230,7 +232,7 @@ const QuestionGenerator = () => {
           subject: 'CS303 - Database Systems',
           marks: 30,
           duration: '1 hour',
-          createdBy: 'Dr. Aahil Gazali',
+          createdBy: currentUser?.name || 'User',
           createdAt: new Date().toISOString(),
           modifiedAt: new Date().toISOString(),
           description: 'Short quiz focusing on fundamental database concepts including ER diagrams, normalization, and SQL queries.',
@@ -247,7 +249,7 @@ const QuestionGenerator = () => {
           subject: 'CS302 - Algorithms',
           marks: 50,
           duration: '2 hours',
-          createdBy: 'Dr. Aahil Gazali',
+          createdBy: currentUser?.name || 'User',
         createdAt: new Date().toISOString(),
           modifiedAt: new Date().toISOString(),
           description: 'Mid-term examination covering algorithm analysis, divide-and-conquer strategies, and dynamic programming.',

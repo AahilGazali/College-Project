@@ -83,7 +83,7 @@ const BuildPaper = () => {
 
   const handleSave = async () => {
     try {
-      // Here you would typically save to Firebase
+      // Here you would typically save to the backend API
       toast.success('Question paper saved successfully!');
     } catch (error) {
       toast.error('Failed to save question paper');

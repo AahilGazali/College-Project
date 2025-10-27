@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { DashboardProvider } from './contexts/DashboardContext';
-import { auth, db } from './firebase/config';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import Dashboard from './components/dashboard/Dashboard';
@@ -12,12 +11,6 @@ import QuestionGenerator from './components/generate/QuestionGenerator';
 import LandingPage from './components/landing/LandingPage';
 import ErrorBoundary from './components/ErrorBoundary';
 import Settings from './components/settings/Settings';
-import FirebaseTest from './components/FirebaseTest';
-import ConfigChecker from './components/ConfigChecker';
-import FirebaseDiagnostic from './components/FirebaseDiagnostic';
-import FirebaseSetupGuide from './components/FirebaseSetupGuide';
-import FirebaseConfigUpdater from './components/FirebaseConfigUpdater';
-import FirebaseReadyCheck from './components/FirebaseReadyCheck';
 import SmoothScroll from './components/SmoothScroll';
 import PaperManagement from './components/papers/PaperManagement';
 import './App.css';
@@ -58,8 +51,7 @@ function App() {
       <Router>
         <AuthProvider>
           <DashboardProvider>
-            <FirebaseReadyCheck>
-              <SmoothScroll>
+            <SmoothScroll>
               <div className="App">
                 <Toaster
                   position="top-right"
@@ -92,11 +84,6 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/settings" element={<Settings />} />
-              <Route path="/test" element={<FirebaseTest />} />
-              <Route path="/config" element={<ConfigChecker />} />
-              <Route path="/diagnostic" element={<FirebaseDiagnostic />} />
-              <Route path="/setup" element={<FirebaseSetupGuide />} />
-              <Route path="/config-updater" element={<FirebaseConfigUpdater />} />
               
               {/* Protected Routes */}
               <Route 
@@ -146,7 +133,6 @@ function App() {
                         </Routes>
               </div>
             </SmoothScroll>
-          </FirebaseReadyCheck>
             </DashboardProvider>
         </AuthProvider>
       </Router>

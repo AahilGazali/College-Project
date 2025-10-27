@@ -17,11 +17,13 @@ import {
 } from 'lucide-react';
 import ThreeJSBackground from '../ThreeJSBackground';
 import { useDashboard } from '../../contexts/DashboardContext';
+import { useAuth } from '../../contexts/AuthContext';
 import BookIcon from '../icons/BookIcon';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { stats, recentActivity, currentProjects } = useDashboard();
+  const { currentUser } = useAuth();
 
   const quickActions = [
     {
@@ -107,7 +109,7 @@ const Dashboard = () => {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 text-white">
                 <User className="h-5 w-5" />
-                <span>Dr. Aahil Gazali</span>
+                <span>{currentUser ? currentUser.name : 'User'}</span>
               </div>
               <button
                 onClick={() => navigate('/settings')}

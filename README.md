@@ -1,279 +1,341 @@
 # College Question Paper Generator
 
-An AI-powered question paper generation system for college faculty, featuring Bloom's Taxonomy mapping, OCR document processing, and automated question generation.
+A comprehensive web application for generating question papers using AI, built with React.js and MongoDB.
 
 ## 🚀 Features
 
+### Core Functionality
+- **AI-Powered Question Generation** using Bloom's Taxonomy
+- **Document Upload & Processing** (PDF, DOC, DOCX, Images)
+- **Question Paper Builder** with customizable sections
+- **PDF Export** with professional formatting
+- **Real-time Preview** of generated papers
+
 ### Authentication & User Management
 - **Login/Registration System** with role-based access (Admin + Faculty)
-- **Firebase Authentication** for secure user management
+- **JWT-based Authentication** for secure user management
 - **Role-based permissions** and access control
 
-### Document Processing
-- **Upload Syllabus and PYQs** with drag-and-drop interface
-- **PDF/Text/Image Support** for multiple document formats
-- **Auto-extract text using OCR** (Tesseract.js) and PDF parsing
-- **Intelligent topic extraction** from uploaded documents
+### Document Management
+- **Multi-format Support** - PDF, DOC, DOCX, TXT, Images
+- **OCR Text Extraction** from images and scanned documents
+- **Topic Analysis** and content categorization
+- **Syllabus & PYQ Management** with organized storage
 
-### AI-Powered Question Generation
-- **Bloom's Taxonomy Integration** with 6 cognitive levels:
-  - Remembering
-  - Understanding
-  - Applying
-  - Analyzing
-  - Evaluating
-  - Creating
-- **Topic-based question generation** from syllabus units
-- **Reference from PYQs** with similarity tagging
-- **Customizable question parameters** (marks, difficulty, type)
+### Question Paper Features
+- **Customizable Sections** (Part A, B, C)
+- **Marks Distribution** with automatic calculation
+- **Course Outcomes** mapping
+- **Difficulty Level** classification
+- **Module-wise** question organization
 
-### Question Paper Builder
-- **Auto-generate full papers** with multiple sections
-- **Manual editing capabilities** for fine-tuning
-- **Section-wise organization** (Objective, Short Answer, Long Answer)
-- **Export to PDF** for download and printing
-
-## 🛠 Tech Stack
+## 🛠️ Tech Stack
 
 ### Frontend
-- **React.js** - Modern UI framework
-- **Tailwind CSS** - Utility-first CSS framework
-- **React Router** - Client-side routing
+- **React.js** - UI framework
+- **Tailwind CSS** - Styling
+- **React Router** - Navigation
 - **React Hook Form** - Form management
-- **React Dropzone** - File upload handling
-- **Lucide React** - Icon library
+- **React Hot Toast** - Notifications
+- **Axios** - HTTP client
+- **PDF.js** - PDF processing
+- **Tesseract.js** - OCR functionality
+- **jsPDF** - PDF generation
 
 ### Backend & Services
-- **Firebase** - Backend as a Service
-  - **Firebase Authentication** - User management
-  - **Firestore** - NoSQL database
-  - **Firebase Storage** - File storage
 - **Node.js** - Runtime environment
+- **Express.js** - Web framework
+- **MongoDB** - NoSQL database
+- **Mongoose** - ODM for MongoDB
+- **JWT** - Authentication tokens
+- **Multer** - File upload handling
+- **bcryptjs** - Password hashing
 
-### AI & Processing
-- **Tesseract.js** - OCR for image processing
-- **PDF.js** - PDF text extraction
-- **OpenAI API** (planned) - AI question generation
-- **Natural Language Processing** - Topic extraction
+## 📋 Prerequisites
 
-### Export & Generation
-- **jsPDF** - PDF generation
-- **HTML2Canvas** - Screenshot capture
-
-## 📦 Installation
-
-### Prerequisites
 - Node.js (v16 or higher)
 - npm or yarn
-- Firebase project setup
+- MongoDB (local installation or MongoDB Atlas)
 
-### Setup Instructions
+## 🚀 Quick Start
 
-1. **Clone the repository**
+### 1. Clone the Repository
    ```bash
    git clone <repository-url>
    cd college-question-paper-generator
    ```
 
-2. **Install dependencies**
+### 2. Install Dependencies
    ```bash
-   npm install
-   ```
+# Install all dependencies (frontend + backend)
+npm run install:all
+```
 
-3. **Firebase Configuration**
-   - Create a new Firebase project at [Firebase Console](https://console.firebase.google.com/)
-   - Enable Authentication, Firestore, and Storage
-   - Copy your Firebase config to `src/firebase/config.js`:
-   ```javascript
-   const firebaseConfig = {
-     apiKey: "your-api-key",
-     authDomain: "your-project.firebaseapp.com",
-     projectId: "your-project-id",
-     storageBucket: "your-project.appspot.com",
-     messagingSenderId: "your-sender-id",
-     appId: "your-app-id"
-   };
-   ```
-   
-   **⚠️ IMPORTANT**: If you get "Firebase: Error (auth/api-key-not-valid)" error, follow the detailed setup guide in `FIREBASE_SETUP.md`
+### 3. Set Up MongoDB
 
-4. **Environment Variables (Recommended)**
-   Create a `.env` file in the project root with your Firebase credentials:
+#### Option A: Local MongoDB
+```bash
+# Install MongoDB locally
+# Windows: Download from MongoDB website
+# macOS: brew install mongodb-community
+# Linux: Follow MongoDB installation guide
+
+# Start MongoDB service
+# Windows: net start MongoDB
+# macOS/Linux: sudo systemctl start mongod
+```
+
+#### Option B: MongoDB Atlas (Recommended)
+1. Go to [MongoDB Atlas](https://www.mongodb.com/atlas)
+2. Create a free account
+3. Create a cluster (M0 free tier)
+4. Get your connection string
+
+### 4. Configure Environment Variables
+
+Create `server/.env` file:
    ```env
-   REACT_APP_FIREBASE_API_KEY=your_api_key_here
-   REACT_APP_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
-   REACT_APP_FIREBASE_PROJECT_ID=your_project_id
-   REACT_APP_FIREBASE_STORAGE_BUCKET=your_project_id.appspot.com
-   REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-   REACT_APP_FIREBASE_APP_ID=your_app_id
-   REACT_APP_FIREBASE_MEASUREMENT_ID=your_measurement_id
-   ```
+# Server Configuration
+PORT=5000
+NODE_ENV=development
+FRONTEND_URL=http://localhost:3000
 
-5. **Firestore Security Rules**
-   ```javascript
-   rules_version = '2';
-   service cloud.firestore {
-     match /databases/{database}/documents {
-       match /users/{userId} {
-         allow read, write: if request.auth != null && request.auth.uid == userId;
-       }
-       match /documents/{documentId} {
-         allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-       }
-       match /questionPapers/{paperId} {
-         allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-       }
-     }
-   }
-   ```
+# MongoDB Configuration
+MONGODB_URI=mongodb://localhost:27017/question-paper-generator
+# OR for Atlas: MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/question-paper-generator
 
-5. **Storage Security Rules**
-   ```javascript
-   rules_version = '2';
-   service firebase.storage {
-     match /b/{bucket}/o {
-       match /documents/{userId}/{allPaths=**} {
-         allow read, write: if request.auth != null && request.auth.uid == userId;
-       }
-     }
-   }
-   ```
+# JWT Configuration
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+JWT_EXPIRE=7d
 
-6. **Start the development server**
+# File Upload Configuration
+MAX_FILE_SIZE=10485760
+UPLOAD_PATH=./uploads
+```
+
+### 5. Start the Application
    ```bash
-   npm start
-   ```
+# Start both frontend and backend
+npm run dev
 
-7. **Open your browser**
-   Navigate to `http://localhost:3000` 
-
-## 🏗 Project Structure
-
-```
-src/
-├── components/
-│   ├── auth/
-│   │   ├── Login.js
-│   │   └── Register.js
-│   ├── dashboard/
-│   │   └── Dashboard.js
-│   ├── upload/
-│   │   └── UploadDocuments.js
-│   └── generate/
-│       └── QuestionGenerator.js
-├── contexts/
-│   └── AuthContext.js
-├── firebase/
-│   └── config.js
-├── App.js
-├── index.js
-└── index.css
+# OR start them separately:
+# Backend: npm run server:dev
+# Frontend: npm start
 ```
 
-## 🔧 Configuration
+The application will be available at:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5000
 
-### Environment Variables
-Create a `.env` file in the root directory:
-```env
-REACT_APP_FIREBASE_API_KEY=your-api-key
-REACT_APP_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-REACT_APP_FIREBASE_PROJECT_ID=your-project-id
-REACT_APP_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
-REACT_APP_FIREBASE_APP_ID=your-app-id
+## 📁 Project Structure
+
+```
+college-question-paper-generator/
+├── server/                     # Backend API
+│   ├── models/                 # MongoDB models
+│   │   ├── User.js
+│   │   ├── Document.js
+│   │   ├── Question.js
+│   │   └── QuestionPaper.js
+│   ├── routes/                 # API routes
+│   │   ├── auth.js
+│   │   ├── users.js
+│   │   ├── documents.js
+│   │   ├── papers.js
+│   │   └── upload.js
+│   ├── middleware/             # Custom middleware
+│   │   ├── auth.js
+│   │   └── upload.js
+│   ├── server.js              # Main server file
+│   ├── package.json
+│   └── README.md
+├── src/
+│   ├── components/            # React components
+│   │   ├── auth/             # Authentication components
+│   │   ├── dashboard/        # Dashboard components
+│   │   ├── generate/         # Question generation
+│   │   ├── papers/           # Paper management
+│   │   ├── upload/           # Document upload
+│   │   └── settings/         # Settings components
+│   ├── contexts/             # React contexts
+│   │   ├── AuthContext.js    # Authentication context
+│   │   └── DashboardContext.js
+│   ├── services/             # API service layer
+│   │   └── api.js
+│   └── App.js
+├── package.json
+└── README.md
 ```
 
-### AI Integration
-To enable AI question generation, add your OpenAI API key:
-```env
-REACT_APP_OPENAI_API_KEY=your-openai-api-key
-```
+## 🔧 API Endpoints
 
-## 🚀 Usage
+### Authentication
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - Login user
+- `GET /api/auth/me` - Get current user
+- `POST /api/auth/logout` - Logout user
 
-### For Faculty
-1. **Register/Login** with faculty credentials
-2. **Upload Documents** - Syllabus and previous year questions
-3. **Generate Questions** - Select topics and Bloom's Taxonomy levels
-4. **Review & Edit** - Customize generated questions
-5. **Export Papers** - Download as PDF
+### Documents
+- `POST /api/documents/upload` - Upload documents
+- `GET /api/documents` - Get user's documents
+- `GET /api/documents/:id/download` - Download document
+- `DELETE /api/documents/:id` - Delete document
 
-### For Admins
-1. **User Management** - Manage faculty accounts
-2. **System Analytics** - View usage statistics
-3. **Settings Configuration** - Configure system parameters
+### Question Papers
+- `POST /api/papers` - Create question paper
+- `GET /api/papers` - Get user's question papers
+- `GET /api/papers/:id` - Get question paper by ID
+- `PUT /api/papers/:id` - Update question paper
+- `DELETE /api/papers/:id` - Delete question paper
+- `POST /api/papers/:id/generate` - Generate questions
+
+### Users
+- `GET /api/users/:id` - Get user profile
+- `PUT /api/users/:id` - Update user profile
 
 ## 🔒 Security Features
 
-- **Firebase Authentication** with email/password
-- **Role-based access control** (Admin/Faculty)
-- **Secure file uploads** with user-specific storage
-- **Protected routes** and API endpoints
-- **Input validation** and sanitization
+- **JWT Authentication** with secure token management
+- **Password Hashing** using bcrypt with salt rounds
+- **Input Validation** with express-validator
+- **Rate Limiting** to prevent API abuse
+- **CORS Protection** with configurable policies
+- **File Upload Security** with type validation and size limits
+- **Role-based Access Control** (Admin and Faculty roles)
 
-## 📱 Responsive Design
+## 📊 Database Schema
 
-The application is fully responsive and works on:
-- Desktop computers
-- Tablets
-- Mobile devices
-
-## 🧪 Testing
-
-```bash
-# Run tests
-npm test
-
-# Run tests with coverage
-npm test -- --coverage
+### Users Collection
+```javascript
+{
+  _id: ObjectId,
+  name: String,
+  email: String (unique),
+  password: String (hashed),
+  role: String (admin/faculty),
+  isActive: Boolean,
+  createdAt: Date,
+  updatedAt: Date
+}
 ```
 
-## 📦 Build for Production
+### Documents Collection
+```javascript
+{
+  _id: ObjectId,
+  title: String,
+  type: String (syllabus/pyq/reference),
+  subject: String,
+  fileName: String,
+  filePath: String,
+  uploadedBy: ObjectId (ref: User),
+  extractedText: String,
+  topics: Array,
+  createdAt: Date
+}
+```
 
+### Question Papers Collection
+```javascript
+{
+  _id: ObjectId,
+  title: String,
+  subject: String,
+  totalMarks: Number,
+  examDuration: Number,
+  sections: Array,
+  courseOutcomes: Array,
+  modules: Array,
+  status: String (draft/review/approved),
+  createdBy: ObjectId (ref: User),
+  createdAt: Date
+}
+```
+
+## 🎯 Key Features
+
+1. **AI Question Generation**: Uses Bloom's Taxonomy for intelligent question creation
+2. **Document Processing**: Automatic text extraction from various file formats
+3. **Real-time Preview**: Live preview of generated question papers
+4. **PDF Export**: Professional PDF generation with custom formatting
+5. **User Management**: Role-based access with admin and faculty roles
+6. **File Management**: Secure file upload and storage system
+7. **Responsive Design**: Mobile-friendly interface
+
+## 🚀 Deployment
+
+### Development
 ```bash
-# Create production build
+npm run dev  # Starts both frontend and backend
+```
+
+### Production
+```bash
+# Build frontend
 npm run build
 
-# Deploy to Firebase Hosting
-firebase deploy
+# Start backend
+npm run server
+
+# Or use PM2 for process management
+npm install -g pm2
+pm2 start server/server.js --name "question-paper-api"
 ```
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **MongoDB Connection Error**
+   - Check if MongoDB is running
+   - Verify connection string in server/.env
+   - Check network access (for Atlas)
+
+2. **JWT Token Errors**
+   - Verify JWT_SECRET is set in server/.env
+   - Check token expiration
+   - Clear localStorage and login again
+
+3. **File Upload Issues**
+   - Check file size limits
+   - Verify file types
+   - Ensure upload directory exists
+
+4. **CORS Errors**
+   - Update FRONTEND_URL in server/.env
+   - Check CORS configuration
+
+## 📝 Scripts
+
+- `npm start` - Start React development server
+- `npm run build` - Build for production
+- `npm test` - Run tests
+- `npm run server` - Start backend server
+- `npm run server:dev` - Start backend in development mode
+- `npm run dev` - Start both frontend and backend
+- `npm run install:all` - Install all dependencies
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
 
 ## 🆘 Support
 
-For support and questions:
-- Create an issue in the repository
-- Contact the development team
-- Check the documentation
+For issues and questions:
+- Check the server logs for backend issues
+- Check browser console for frontend issues
+- Verify MongoDB connection
+- Test API endpoints with Postman
+- Review the server/README.md for detailed setup
 
-## 🔮 Future Enhancements
+## 🎉 Migration Complete!
 
-- **Advanced AI Integration** with GPT-4
-- **Multi-language Support**
-- **Advanced Analytics Dashboard**
-- **Bulk Question Import/Export**
-- **Collaborative Question Paper Creation**
-- **Mobile App Development**
-- **Integration with LMS Systems**
-
-## 📊 Performance Optimization
-
-- **Lazy loading** for components
-- **Image optimization** for uploaded files
-- **Caching strategies** for better performance
-- **Code splitting** for faster initial load
-
----
-
-**Built with ❤️ for educational institutions** 
+This project has been successfully migrated from Firebase to MongoDB! Check the `MONGODB_MIGRATION_GUIDE.md` for detailed migration information and benefits.

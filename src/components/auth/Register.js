@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { auth, db } from '../../firebase/config';
 import { Eye, EyeOff, Mail, Lock, User, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import BookIcon from '../icons/BookIcon';
@@ -18,50 +17,9 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [firebaseReady, setFirebaseReady] = useState(false);
   
   const { signup } = useAuth();
   const navigate = useNavigate();
-
-  // Check if Firebase is properly loaded
-  React.useEffect(() => {
-    const checkFirebase = () => {
-      if (auth && db) {
-        setFirebaseReady(true);
-        console.log('Firebase is ready for registration');
-      } else {
-        setFirebaseReady(false);
-        console.error('Firebase is not ready. Auth:', !!auth, 'DB:', !!db);
-        setError('Firebase is not properly configured. Please refresh the page.');
-      }
-    };
-
-    // Check immediately
-    checkFirebase();
-    
-    // Also check after a short delay to ensure Firebase has time to initialize
-    const timer = setTimeout(checkFirebase, 1000);
-    
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Show loading state while Firebase initializes
-  if (!firebaseReady) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-primary">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-200 mx-auto mb-4"></div>
-          <h2 className="text-xl font-semibold text-white mb-2">Initializing Firebase...</h2>
-          <p className="text-gray-200">Please wait while we set up your registration system.</p>
-          {error && (
-            <div className="mt-4 p-3 bg-red-50/10 backdrop-blur-sm border border-red-200/20 rounded-lg text-red-200">
-              {error}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -103,18 +61,9 @@ const Register = () => {
       return;
     }
 
-    // Additional safety checks to prevent auth errors
-    if (!auth) {
-      setError('Firebase authentication is not properly configured. Please refresh the page or contact support.');
-      toast.error('Firebase configuration error. Please refresh the page.');
-      console.error('Firebase auth object is not available');
-      return;
-    }
-
-    if (!db) {
-      setError('Firebase database is not properly configured. Please refresh the page or contact support.');
-      toast.error('Firebase configuration error. Please refresh the page.');
-      console.error('Firebase db object is not available');
+    // Additional safety checks
+    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+      setError('Please fill in all fields');
       return;
     }
 
@@ -126,11 +75,6 @@ const Register = () => {
       console.log('Starting registration process...');
       console.log('Form data:', { ...formData, password: '[HIDDEN]', confirmPassword: '[HIDDEN]' });
       
-      // Test Firebase connection first
-      console.log('Testing Firebase connection...');
-      console.log('Auth object:', auth);
-      console.log('DB object:', db);
-      
       const result = await signup(formData.email, formData.password, formData.name, formData.role);
       console.log('Registration successful:', result);
       
@@ -138,32 +82,19 @@ const Register = () => {
       navigate('/login');
     } catch (error) {
       console.error('Registration error details:', error);
-      console.error('Error code:', error.code);
       console.error('Error message:', error.message);
-      console.error('Full error object:', error);
       
       // Enhanced error handling with user-friendly messages
       let errorMessage = 'Registration failed. Please try again.';
       
-      if (error.code === 'auth/email-already-in-use') {
+      if (error.message.includes('email already exists')) {
         errorMessage = 'An account with this email already exists. Please try logging in instead.';
-      } else if (error.code === 'auth/invalid-email') {
+      } else if (error.message.includes('Invalid email')) {
         errorMessage = 'Invalid email address format. Please check your email.';
-      } else if (error.code === 'auth/weak-password') {
+      } else if (error.message.includes('Password')) {
         errorMessage = 'Password is too weak. Use at least 6 characters with a mix of letters, numbers, and symbols.';
-      } else if (error.code === 'auth/api-key-not-valid') {
-        errorMessage = 'Firebase configuration error. Please contact the administrator or check the setup guide.';
-        console.error('🔥 FIREBASE CONFIGURATION ERROR 🔥');
-        console.error('The Firebase API key is invalid. Please check FIREBASE_SETUP.md for setup instructions.');
-      } else if (error.code === 'auth/network-request-failed') {
+      } else if (error.message.includes('Network')) {
         errorMessage = 'Network error. Please check your internet connection and try again.';
-      } else if (error.code === 'auth/too-many-requests') {
-        errorMessage = 'Too many failed attempts. Please wait a few minutes before trying again.';
-      } else if (error.code === 'auth/operation-not-allowed') {
-        errorMessage = 'Email/password authentication is not enabled. Please contact the administrator.';
-      } else if (error.message && error.message.includes('auth is not defined')) {
-        errorMessage = 'System configuration error. Please refresh the page or contact support.';
-        console.error('CRITICAL: Auth object is not defined. This should not happen with proper imports.');
       } else if (error.message) {
         errorMessage = `Registration failed: ${error.message}`;
       }

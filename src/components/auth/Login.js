@@ -31,14 +31,14 @@ const Login = () => {
       navigate('/dashboard');
     } catch (error) {
       console.error('Login error:', error);
-      if (error.code === 'auth/user-not-found') {
+      if (error.message.includes('user-not-found')) {
         setError('No account found with this email address');
-      } else if (error.code === 'auth/wrong-password') {
+      } else if (error.message.includes('wrong-password')) {
         setError('Incorrect password');
-      } else if (error.code === 'auth/invalid-email') {
+      } else if (error.message.includes('invalid-email')) {
         setError('Invalid email address format');
-      } else if (error.code === 'auth/api-key-not-valid') {
-        setError('Firebase configuration error. Please check your API key.');
+      } else if (error.message.includes('api-key-not-valid')) {
+        setError('Authentication service error. Please try again.');
       } else {
         setError(`Login failed: ${error.message}`);
       }
