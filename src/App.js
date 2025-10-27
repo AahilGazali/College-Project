@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { DashboardProvider } from './contexts/DashboardContext';
@@ -45,99 +45,76 @@ const AdminRoute = ({ children }) => {
   return currentUser && userRole === 'admin' ? children : <Navigate to="/dashboard" />;
 };
 
+// Define your routes here
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <LandingPage />,
+  },
+  {
+    path: '/login',
+    element: <Login />,
+  },
+  {
+    path: '/register',
+    element: <Register />,
+  },
+  {
+    path: '/settings',
+    element: <Settings />,
+  },
+  {
+    path: '/dashboard',
+    element: (
+      <ProtectedRoute>
+        <Dashboard />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/upload',
+    element: (
+      <ProtectedRoute>
+        <UploadDocuments />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/generate',
+    element: (
+      <ProtectedRoute>
+        <QuestionGenerator />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/papers',
+    element: (
+      <ProtectedRoute>
+        <PaperManagement />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin',
+    element: (
+      <AdminRoute>
+        <Settings />
+      </AdminRoute>
+    ),
+  },
+]);
+
 function App() {
   return (
     <ErrorBoundary>
-      <Router>
-        <AuthProvider>
-          <DashboardProvider>
-            <SmoothScroll>
-              <div className="App">
-                <Toaster
-                  position="top-right"
-                  toastOptions={{
-                    duration: 4000,
-                    style: {
-                      background: '#363636',
-                      color: '#fff',
-                    },
-                    success: {
-                      duration: 3000,
-                      iconTheme: {
-                        primary: '#10B981',
-                        secondary: '#fff',
-                      },
-                    },
-                    error: {
-                      duration: 4000,
-                      iconTheme: {
-                        primary: '#EF4444',
-                        secondary: '#fff',
-                      },
-                    },
-                  }}
-                />
-              
-              <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/settings" element={<Settings />} />
-              
-              {/* Protected Routes */}
-              <Route 
-                path="/dashboard" 
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } 
-              />
-              
-              <Route 
-                path="/upload" 
-                element={
-                  <ProtectedRoute>
-                    <UploadDocuments />
-                  </ProtectedRoute>
-                } 
-              />
-              
-              <Route 
-                path="/generate" 
-                element={
-                  <ProtectedRoute>
-                    <QuestionGenerator />
-                  </ProtectedRoute>
-                } 
-              />
-              
-              <Route 
-                path="/papers" 
-                element={
-                  <ProtectedRoute>
-                    <PaperManagement />
-                  </ProtectedRoute>
-                } 
-              />
-              
-              <Route 
-                path="/admin" 
-                element={
-                  <AdminRoute>
-                    <Settings />
-                  </AdminRoute>
-                } 
-              />
-                        </Routes>
-              </div>
-            </SmoothScroll>
-            </DashboardProvider>
-        </AuthProvider>
-      </Router>
+      <AuthProvider>
+        <DashboardProvider>
+          <RouterProvider router={router} future={{ v7_startTransition: true, v7_relativeSplatPath: true }} />
+        </DashboardProvider>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }
 
-export default App; 
+export default App;

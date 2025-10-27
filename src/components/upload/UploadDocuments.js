@@ -280,41 +280,6 @@ const UploadDocuments = () => {
 
         {/* Info Card */}
 
-        {/* AI Processing Info */}
-        <div className="card-gradient p-6 rounded-2xl">
-          <div className="flex items-start space-x-4">
-            <div className="h-12 w-12 bg-gradient-secondary rounded-lg flex items-center justify-center shadow-primary">
-              <Brain className="h-6 w-6 text-white" />
-              </div>
-            <div>
-              <h4 className="text-lg font-semibold text-gray-800 mb-2">
-                AI-Powered Document Processing
-              </h4>
-              <p className="text-gray-600 mb-4">
-                Once uploaded, our AI will automatically extract key information from your documents:
-              </p>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  Extract topics and subtopics from syllabus
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  Identify question patterns and difficulty levels
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  Map questions to Bloom's Taxonomy levels
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  Generate intelligent question suggestions
-                </li>
-              </ul>
-          </div>
-          </div>
-        </div>
-
         {/* Uploaded Documents List */}
         {isLoadingDocs ? (
           <div className="card-gradient p-6 rounded-2xl mt-8">
@@ -382,6 +347,15 @@ const UploadDocuments = () => {
                 </div>
               ))}
             </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => navigate('/generate')}
+                className="px-6 py-3 bg-gradient-secondary text-white rounded-lg hover:opacity-95 transition"
+              >
+                Next: Generate Questions
+              </button>
+            </div>
           </div>
         ) : (
           <div className="card-gradient p-6 rounded-2xl mt-8">
@@ -391,9 +365,52 @@ const UploadDocuments = () => {
               <p className="text-sm text-gray-500 mt-2">
                 Upload your first {activeTab === 'syllabus' ? 'syllabus' : 'PYQ'} document using the form above
               </p>
+              <div className="mt-6">
+                <button
+                  onClick={() => navigate('/generate')}
+                  className="px-6 py-3 bg-gradient-secondary text-white rounded-lg hover:opacity-95 transition"
+                >
+                  Next: Generate Questions
+                </button>
+              </div>
             </div>
           </div>
         )}
+
+        {/* AI Processing Info */}
+        <div className="card-gradient p-6 rounded-2xl">
+          <div className="flex items-start space-x-4">
+            <div className="h-12 w-12 bg-gradient-secondary rounded-lg flex items-center justify-center shadow-primary">
+              <Brain className="h-6 w-6 text-white" />
+              </div>
+            <div>
+              <h4 className="text-lg font-semibold text-gray-800 mb-2">
+                AI-Powered Document Processing
+              </h4>
+              <p className="text-gray-600 mb-4">
+                Once uploaded, our AI will automatically extract key information from your documents:
+              </p>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  Extract topics and subtopics from syllabus
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  Identify question patterns and difficulty levels
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  Map questions to Bloom's Taxonomy levels
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  Generate intelligent question suggestions
+                </li>
+              </ul>
+          </div>
+          </div>
+        </div>
       </div>
     </div>
   );

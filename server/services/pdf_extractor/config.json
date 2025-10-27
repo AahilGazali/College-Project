@@ -1,0 +1,7 @@
+{
+    "mongodb_uri": "mongodb://localhost:27017",
+    "database_name": "college_project",
+    "google_drive": {
+        "credentials_path": "server/google-drive-key.json"
+    }
+}

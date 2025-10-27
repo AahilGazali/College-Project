@@ -22,10 +22,44 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // CORS configuration
+// Accept the configured FRONTEND_URL, plus allow other local IPs during development by
+// echoing the request origin when it's safe. This prevents the server sending a fixed
+// value like 'http://localhost:3000' which would fail when the client is accessed via
+// an IP such as 10.5.0.2:3000 (common when using devices on the network or WSL).
+const allowedFrontend = process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : ['http://localhost:3000'];
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true
+  origin: function (origin, callback) {
+    // Allow non-browser requests like curl or server-side (no origin)
+    if (!origin) return callback(null, true);
+
+    // If the origin exactly matches an allowed frontend URL, accept it
+    if (allowedFrontend.indexOf(origin) !== -1) {
+      return callback(null, true);
+    }
+
+    // During development, allow same-host IP addresses on port 3000 (e.g., http://10.5.0.2:3000)
+    if (process.env.NODE_ENV !== 'production') {
+      try {
+        const url = new URL(origin);
+        if (url.port === '3000' && (url.hostname === 'localhost' || /^10\.|^192\.168\.|^127\./.test(url.hostname))) {
+          return callback(null, true);
+        }
+      } catch (e) {
+        // malformed origin - reject
+      }
+    }
+
+    console.warn(`CORS blocked for origin: ${origin}`);
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
+
+// Ensure preflight requests are answered quickly
+app.options('*', cors());
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));

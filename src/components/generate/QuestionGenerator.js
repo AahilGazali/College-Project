@@ -1,28 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  BookOpen, 
-  FileText, 
-  Upload, 
-  Settings, 
-  Download,
+import {
+  FileText,
+  BookOpen,
+  Target,
+  Brain,
+  CheckCircle,
+  Edit3,
   ArrowRight,
   Plus,
-  Trash2,
-  Edit3,
-  Eye,
-  CheckCircle,
-  Clock,
-  Target,
-  BarChart3,
-  Zap,
   AlertCircle,
-  Brain
+  Trash2,
+  Eye,
+  Download,
+  BarChart3
 } from 'lucide-react';
 import ThreeJSBackground from '../ThreeJSBackground';
+import BookIcon from '../icons/BookIcon';
 import { useDashboard } from '../../contexts/DashboardContext';
 import { useAuth } from '../../contexts/AuthContext';
-import BookIcon from '../icons/BookIcon';
 
 const QuestionGenerator = () => {
   const navigate = useNavigate();
@@ -369,11 +365,11 @@ const QuestionGenerator = () => {
       case 2:
         return (
           <div className="space-y-6 animate-fade-in">
-            <h3 className="text-2xl font-bold text-white mb-6">Syllabus & Course Outcomes</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-6">Syllabus & Course Outcomes</h3>
             
             <div className="space-y-6">
               <div>
-                <label className="block text-white font-medium mb-2">
+                <label className="block text-gray-800 font-medium mb-2">
                   Course Outcomes (COs) <span className="text-red-400">*</span>
                 </label>
                 {formData.courseOutcomes.map((co, index) => (
@@ -411,7 +407,7 @@ const QuestionGenerator = () => {
               </div>
               
               <div>
-                <label className="block text-white font-medium mb-2">
+                <label className="block text-gray-800 font-medium mb-2">
                   Modules <span className="text-red-400">*</span>
                 </label>
                 {formData.modules.map((module, index) => (
@@ -449,33 +445,34 @@ const QuestionGenerator = () => {
               </div>
               
               <div>
-                <label className="block text-white font-medium mb-2">
+                <label className="block text-gray-800 font-medium mb-2">
                   Difficulty Levels <span className="text-red-400">*</span>
                 </label>
-                <div className="flex gap-4">
-                  {['easy', 'medium', 'hard'].map((level) => (
-                    <label key={level} className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={formData.difficultyLevels.includes(level)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setFormData(prev => ({
-                              ...prev,
-                              difficultyLevels: [...prev.difficultyLevels, level]
-                            }));
-                          } else {
-                            setFormData(prev => ({
-                              ...prev,
-                              difficultyLevels: prev.difficultyLevels.filter(l => l !== level)
-                            }));
+                <div className="flex gap-3">
+                  {['easy', 'medium', 'hard'].map((level) => {
+                    const active = formData.difficultyLevels.includes(level);
+                    return (
+                      <button
+                        key={level}
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => {
+                            const has = prev.difficultyLevels.includes(level);
+                            const next = has
+                              ? prev.difficultyLevels.filter(l => l !== level)
+                              : [...prev.difficultyLevels, level];
+                            return { ...prev, difficultyLevels: next };
+                          });
+                          if (errors.difficultyLevels) {
+                            setErrors(prev => ({ ...prev, difficultyLevels: '' }));
                           }
                         }}
-                        className="w-4 h-4 text-primary-medium focus:ring-primary-medium"
-                      />
-                      <span className="text-white capitalize">{level}</span>
-                    </label>
-                  ))}
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-shadow focus:outline-none ${active ? 'bg-gradient-secondary text-white shadow-primary' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+                      >
+                        {level.charAt(0).toUpperCase() + level.slice(1)}
+                      </button>
+                    );
+                  })}
                 </div>
                 {errors.difficultyLevels && (
                   <p className="text-red-400 text-sm mt-1 flex items-center gap-1">
