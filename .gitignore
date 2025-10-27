@@ -29,6 +29,14 @@ yarn-error.log*
 *.swp
 *.swo
 
+# Google Drive credentials
+server/google-drive-key.json
+google-drive-key.json
+
+# Uploads directory
+server/uploads/
+uploads/
+
 # OS generated files
 Thumbs.db
 ehthumbs.db

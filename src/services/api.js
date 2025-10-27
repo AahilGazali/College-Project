@@ -122,6 +122,15 @@ export const usersAPI = {
 
 // Documents API
 export const documentsAPI = {
+  // Create document from Google Drive link
+  createFromLink: async (payload) => {
+    const response = await fetch(`${API_BASE_URL}/documents/link`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload)
+    });
+    return handleResponse(response);
+  },
   // Upload documents
   uploadDocuments: async (formData) => {
     const token = localStorage.getItem('token');

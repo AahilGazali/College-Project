@@ -9,6 +9,22 @@ const { extractTextFromFile } = require('../middleware/upload');
 
 const router = express.Router();
 
+// Utility: Extract Google Drive fileId from various link formats
+const extractDriveFileId = (link) => {
+  if (!link) return null;
+  const patterns = [
+    /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/, // /file/d/<id>/view
+    /drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/, // open?id=<id>
+    /drive\.google\.com\/uc\?id=([a-zA-Z0-9_-]+)/,   // uc?id=<id>
+    /docs\.google\.com\/uc\?id=([a-zA-Z0-9_-]+)/
+  ];
+  for (const re of patterns) {
+    const m = link.match(re);
+    if (m && m[1]) return m[1];
+  }
+  return null;
+};
+
 // @route   POST /api/documents/upload
 // @desc    Upload documents
 // @access  Private
@@ -76,6 +92,78 @@ router.post('/upload', [
     console.error('Document upload error:', error);
     res.status(500).json({
       message: 'Document upload failed',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+// @route   POST /api/documents/link
+// @desc    Create a document entry from a Google Drive link (no file upload)
+// @access  Private
+router.post('/link', [
+  authenticateToken,
+  body('driveLink').trim().isURL().withMessage('Valid Google Drive link is required'),
+  body('title').optional().trim().isLength({ max: 200 }).withMessage('Title must be less than 200 characters'),
+  body('type').isIn(['syllabus', 'pyq', 'reference']).withMessage('Type must be syllabus, pyq, or reference'),
+  body('subject').trim().isLength({ min: 1 }).withMessage('Subject is required'),
+  body('subjectCode').optional().trim(),
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { driveLink, title, description = '', type, subject, subjectCode = '', tags } = req.body;
+
+    // Extract fileId from the provided link
+    const fileId = extractDriveFileId(driveLink);
+    if (!fileId) {
+      return res.status(400).json({
+        message: 'Could not extract Google Drive file ID from the provided link.'
+      });
+    }
+
+    // Do NOT call any Google API. Save the link as-is with safe defaults.
+    const fileMeta = {
+      name: (title && title.trim()) || 'drive-file.pdf',
+      size: 0,
+      mimeType: 'application/pdf',
+      webViewLink: `https://drive.google.com/file/d/${fileId}/view?usp=sharing`
+    };
+
+    const document = new Document({
+      title: (title && title.trim()) || fileMeta.name,
+      description,
+      type,
+      subject,
+      subjectCode,
+      fileName: fileMeta.name,
+      originalName: fileMeta.name,
+      filePath: null,
+      driveLink: fileMeta.webViewLink,
+      driveFileId: fileId,
+      fileSize: fileMeta.size,
+      mimeType: fileMeta.mimeType,
+      uploadedBy: req.user._id,
+      extractedText: '',
+      tags: tags ? String(tags).split(',').map(t => t.trim()) : [],
+      processingStatus: 'pending'
+    });
+
+    await document.save();
+
+    return res.status(201).json({
+      message: 'Document link saved successfully',
+      document
+    });
+  } catch (error) {
+    console.error('Create document from link error:', error);
+    res.status(500).json({
+      message: 'Failed to save document link',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }

@@ -1,163 +1,137 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Upload, 
-  FileText, 
   BookOpen, 
   Target, 
-  CheckCircle, 
-  X,
+  CheckCircle,
   ArrowLeft,
+  Brain,
   Eye,
-  Trash2,
   Download,
-  AlertCircle,
-  File,
-  Brain
+  Trash2,
+  FileText
 } from 'lucide-react';
 import ThreeJSBackground from '../ThreeJSBackground';
 import BookIcon from '../icons/BookIcon';
+import { documentsAPI } from '../../services/api';
+import toast from 'react-hot-toast';
 
 const UploadDocuments = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('syllabus');
-  const [uploadedFiles, setUploadedFiles] = useState({
-    syllabus: [],
-    pyqs: []
+  const [formData, setFormData] = useState({
+    driveLink: '',
+    title: '',
+    subject: '',
+    subjectCode: '',
+    tags: ''
   });
-  const [isUploading, setIsUploading] = useState(false);
-  const [dragActive, setDragActive] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [documents, setDocuments] = useState([]);
+  const [isLoadingDocs, setIsLoadingDocs] = useState(false);
 
   const tabs = [
     { id: 'syllabus', title: 'Syllabus Documents', icon: BookOpen, description: 'Upload course syllabus and module information' },
     { id: 'pyqs', title: 'Previous Year Questions', icon: Target, description: 'Upload PYQ papers for reference and analysis' }
   ];
 
-  const handleDrag = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
+  // Load documents for current tab
+  const loadDocuments = useCallback(async () => {
+    setIsLoadingDocs(true);
+    try {
+      const type = activeTab === 'syllabus' ? 'syllabus' : 'pyq';
+      const response = await documentsAPI.getDocuments({ type, limit: 50 });
+      setDocuments(response.documents || []);
+    } catch (err) {
+      console.error('Failed to load documents:', err);
+      toast.error('Failed to load documents');
+    } finally {
+      setIsLoadingDocs(false);
     }
-  }, []);
+  }, [activeTab]);
 
-  const handleDrop = useCallback((e) => {
+  // Load documents when tab changes
+  useEffect(() => {
+    loadDocuments();
+  }, [loadDocuments]);
+
+  // Submit Google Drive link to backend
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFiles(e.dataTransfer.files);
+    if (!formData.driveLink || !formData.subject) {
+      toast.error('Please provide both Drive link and subject.');
+      return;
     }
-  }, []);
 
-  const handleFiles = (files) => {
-    const newFiles = Array.from(files).map(file => ({
-      id: Date.now() + Math.random(),
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      status: 'uploading',
-      progress: 0,
-      uploadedAt: new Date().toISOString()
-    }));
+    setIsSaving(true);
+    try {
+      const payload = {
+        driveLink: formData.driveLink,
+        title: formData.title,
+        type: activeTab === 'syllabus' ? 'syllabus' : 'pyq',
+        subject: formData.subject,
+        subjectCode: formData.subjectCode,
+        tags: formData.tags
+      };
 
-    setUploadedFiles(prev => ({
-      ...prev,
-      [activeTab]: [...prev[activeTab], ...newFiles]
-    }));
+      await documentsAPI.createFromLink(payload);
+      toast.success('Saved Google Drive link');
+      // Reset minimal fields for next entry
+      setFormData(prev => ({ ...prev, driveLink: '', title: '' }));
+      // Reload documents list
+      loadDocuments();
+    } catch (err) {
+      toast.error(err.message || 'Failed to save link');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
-    // Simulate upload process
-    newFiles.forEach(file => {
-      simulateUpload(file.id);
+  // View document - open in new tab
+  const handleView = (doc) => {
+    if (doc.driveLink) {
+      window.open(doc.driveLink, '_blank');
+    } else {
+      toast.error('No drive link available');
+    }
+  };
+
+  // Download document - redirect to drive link
+  const handleDownload = (doc) => {
+    if (doc.driveLink) {
+      // Convert view link to download link
+      const downloadLink = doc.driveLink.replace('/view', '/download');
+      window.open(downloadLink, '_blank');
+    } else {
+      toast.error('No drive link available');
+    }
+  };
+
+  // Delete document
+  const handleDelete = async (docId) => {
+    if (!window.confirm('Are you sure you want to delete this document?')) {
+      return;
+    }
+
+    try {
+      await documentsAPI.deleteDocument(docId);
+      toast.success('Document deleted successfully');
+      // Reload the list
+      loadDocuments();
+    } catch (err) {
+      toast.error(err.message || 'Failed to delete document');
+    }
+  };
+
+  // Format date helper
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
     });
-  };
-
-  const simulateUpload = (fileId) => {
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += Math.random() * 20;
-      if (progress >= 100) {
-        progress = 100;
-        clearInterval(interval);
-        
-        setUploadedFiles(prev => ({
-          ...prev,
-          [activeTab]: prev[activeTab].map(file => 
-            file.id === fileId 
-              ? { ...file, status: 'completed', progress: 100 }
-              : file
-          )
-        }));
-      } else {
-        setUploadedFiles(prev => ({
-          ...prev,
-          [activeTab]: prev[activeTab].map(file => 
-            file.id === fileId 
-              ? { ...file, progress: Math.round(progress) }
-              : file
-          )
-        }));
-      }
-    }, 200);
-  };
-
-  const removeFile = (fileId) => {
-    setUploadedFiles(prev => ({
-      ...prev,
-      [activeTab]: prev[activeTab].filter(file => file.id !== fileId)
-    }));
-  };
-
-  const getFileIcon = (fileName) => {
-    const extension = fileName.split('.').pop()?.toLowerCase();
-    switch (extension) {
-      case 'pdf':
-        return <FileText className="h-8 w-8 text-red-500" />;
-      case 'doc':
-      case 'docx':
-        return <FileText className="h-8 w-8 text-blue-500" />;
-      case 'txt':
-        return <FileText className="h-8 w-8 text-gray-500" />;
-      default:
-        return <File className="h-8 w-8 text-gray-400" />;
-    }
-  };
-
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'uploading':
-        return 'text-blue-600 bg-blue-100';
-      case 'completed':
-        return 'text-green-600 bg-green-100';
-      case 'error':
-        return 'text-red-600 bg-red-100';
-      default:
-        return 'text-gray-600 bg-gray-100';
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'uploading':
-        return <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>;
-      case 'completed':
-        return <CheckCircle className="h-4 w-4" />;
-      case 'error':
-        return <AlertCircle className="h-4 w-4" />;
-      default:
-        return <File className="h-4 w-4" />;
-    }
   };
 
   return (
@@ -220,118 +194,91 @@ const UploadDocuments = () => {
           </div>
         </div>
 
-        {/* Upload Area */}
+        {/* Paste Google Drive Link Area */}
         <div className="card-gradient p-8 rounded-2xl mb-8">
           <div className="text-center mb-8">
             <div className="h-20 w-20 bg-gradient-secondary rounded-full flex items-center justify-center mx-auto mb-6 shadow-primary">
               <Upload className="h-10 w-10 text-white" />
             </div>
             <h3 className="text-2xl font-bold text-gray-800 mb-2">
-              Upload {activeTab === 'syllabus' ? 'Syllabus' : 'PYQ'} Documents
+              Add {activeTab === 'syllabus' ? 'Syllabus' : 'PYQ'} Document Link
             </h3>
             <p className="text-gray-600">
-              Drag and drop your files here or click to browse
+              Paste a public Google Drive link to your PDF (anyone-with-link should have view access)
             </p>
           </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Google Drive Link</label>
+              <input
+                type="url"
+                required
+                placeholder="https://drive.google.com/file/d/FILE_ID/view?usp=sharing"
+                className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-medium"
+                value={formData.driveLink}
+                onChange={(e) => setFormData({ ...formData, driveLink: e.target.value })}
+              />
+            </div>
 
-          {/* Drag & Drop Zone */}
-          <div
-            className={`border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 ${
-              dragActive
-                ? 'border-primary-medium bg-primary-50/50'
-                : 'border-gray-300 hover:border-primary-medium hover:bg-gray-50/50'
-            }`}
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-          >
-            <input
-              type="file"
-              multiple
-              accept=".pdf,.doc,.docx,.txt"
-              onChange={(e) => handleFiles(e.target.files)}
-              className="hidden"
-              id="file-upload"
-            />
-            <label
-              htmlFor="file-upload"
-              className="cursor-pointer block"
-            >
-              <div className="h-16 w-16 bg-gradient-secondary rounded-full flex items-center justify-center mx-auto mb-4 shadow-primary">
-                <Upload className="h-8 w-8 text-white" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Title (optional)</label>
+                <input
+                  type="text"
+                  placeholder="e.g., SEM VII DMMM Syllabus"
+                  className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-medium"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                />
               </div>
-              <p className="text-lg font-medium text-gray-700 mb-2">
-                Drop files here or click to upload
-              </p>
-              <p className="text-sm text-gray-500">
-                Supports PDF, DOC, DOCX, and TXT files
-              </p>
-            </label>
-          </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g., Data Mining"
+                  className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-medium"
+                  value={formData.subject}
+                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Subject Code (optional)</label>
+                <input
+                  type="text"
+                  className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-medium"
+                  value={formData.subjectCode}
+                  onChange={(e) => setFormData({ ...formData, subjectCode: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Tags (comma separated)</label>
+                <input
+                  type="text"
+                  placeholder="e.g., module1, module2"
+                  className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-medium"
+                  value={formData.tags}
+                  onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                disabled={isSaving}
+                className={`px-6 py-3 rounded-lg text-white font-medium shadow-primary transition ${isSaving ? 'bg-gray-400' : 'bg-gradient-secondary hover:opacity-95'}`}
+              >
+                {isSaving ? 'Saving...' : 'Save Link'}
+              </button>
+            </div>
+          </form>
       </div>
 
-        {/* Uploaded Files */}
-        {uploadedFiles[activeTab].length > 0 && (
-          <div className="card-gradient p-6 rounded-2xl">
-            <h4 className="text-xl font-semibold text-gray-800 mb-6">
-              Uploaded {activeTab === 'syllabus' ? 'Syllabus' : 'PYQ'} Documents
-            </h4>
-            
-            <div className="space-y-4">
-              {uploadedFiles[activeTab].map((file) => (
-                <div key={file.id} className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-                  <div className="flex items-center space-x-4">
-                    {getFileIcon(file.name)}
-                  <div>
-                      <h5 className="font-medium text-gray-800">{file.name}</h5>
-                      <p className="text-sm text-gray-500">
-                        {formatFileSize(file.size)} • {new Date(file.uploadedAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-                
-                  <div className="flex items-center space-x-4">
-                    {/* Progress Bar */}
-                    {file.status === 'uploading' && (
-                      <div className="w-24">
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="progress-gradient h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${file.progress}%` }}
-                          ></div>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">{file.progress}%</p>
-                      </div>
-                    )}
-                    
-                    {/* Status Badge */}
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-2 ${getStatusColor(file.status)}`}>
-                      {getStatusIcon(file.status)}
-                      {file.status}
-                    </span>
-                    
-                    {/* Action Buttons */}
-                    <div className="flex items-center space-x-2">
-                      <button className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors">
-                        <Eye className="h-4 w-4" />
-                      </button>
-                      <button className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors">
-                        <Download className="h-4 w-4" />
-                      </button>
-                      <button 
-                        onClick={() => removeFile(file.id)}
-                        className="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+        {/* Info Card */}
 
         {/* AI Processing Info */}
         <div className="card-gradient p-6 rounded-2xl">
@@ -367,6 +314,86 @@ const UploadDocuments = () => {
           </div>
           </div>
         </div>
+
+        {/* Uploaded Documents List */}
+        {isLoadingDocs ? (
+          <div className="card-gradient p-6 rounded-2xl mt-8">
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-medium mx-auto"></div>
+              <p className="text-gray-600 mt-4">Loading documents...</p>
+            </div>
+          </div>
+        ) : documents.length > 0 ? (
+          <div className="card-gradient p-6 rounded-2xl mt-8">
+            <h4 className="text-xl font-semibold text-gray-800 mb-6">
+              Uploaded {activeTab === 'syllabus' ? 'Syllabus' : 'PYQ'} Documents
+            </h4>
+            
+            <div className="space-y-3">
+              {documents.map((doc) => (
+                <div 
+                  key={doc._id} 
+                  className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow"
+                >
+                  <div className="flex items-center space-x-4 flex-1">
+                    <FileText className="h-8 w-8 text-red-500 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <h5 className="font-medium text-gray-800 truncate">
+                        {doc.title || doc.fileName || 'Untitled Document'}
+                      </h5>
+                      <p className="text-sm text-gray-500">
+                        {doc.fileSize ? `${(doc.fileSize / 1024).toFixed(2)} KB` : ''} 
+                        {doc.fileSize && doc.createdAt ? ' • ' : ''}
+                        {doc.createdAt ? formatDate(doc.createdAt) : ''}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Status Badge */}
+                  <div className="flex items-center space-x-3 ml-4">
+                    <span className="px-3 py-1 bg-green-100 text-green-700 text-sm rounded-full flex items-center gap-1">
+                      <CheckCircle className="h-4 w-4" />
+                      completed
+                    </span>
+                    
+                    {/* Action Buttons */}
+                    <button 
+                      onClick={() => handleView(doc)}
+                      className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="View document"
+                    >
+                      <Eye className="h-5 w-5" />
+                    </button>
+                    <button 
+                      onClick={() => handleDownload(doc)}
+                      className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                      title="Download document"
+                    >
+                      <Download className="h-5 w-5" />
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(doc._id)}
+                      className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Delete document"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="card-gradient p-6 rounded-2xl mt-8">
+            <div className="text-center py-8">
+              <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-600">No documents uploaded yet</p>
+              <p className="text-sm text-gray-500 mt-2">
+                Upload your first {activeTab === 'syllabus' ? 'syllabus' : 'PYQ'} document using the form above
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
