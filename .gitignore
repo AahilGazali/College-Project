@@ -41,3 +41,14 @@ uploads/
 Thumbs.db
 ehthumbs.db
 Desktop.ini 
+ 
+# Server node modules
+server/node_modules/
+
+# Python extractor env and caches
+server/services/pdf_extractor/.venv/
+server/services/pdf_extractor/venv/
+server/services/pdf_extractor/__pycache__/
+
+# Additional build outputs
+dist/
