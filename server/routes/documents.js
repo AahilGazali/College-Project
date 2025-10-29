@@ -6,6 +6,7 @@ const Document = require('../models/Document');
 const { authenticateToken, authorize } = require('../middleware/auth');
 const { upload, uploadToCloudStorage, handleMulterError } = require('../middleware/cloudStorage');
 const { extractTextFromFile } = require('../middleware/upload');
+const pdfService = require('../services/pdfService');
 
 const router = express.Router();
 
@@ -83,6 +84,18 @@ router.post('/upload', [
       uploadedDocuments.push(document);
     }
 
+    // Kick off asynchronous extraction for each saved document
+    (async () => {
+      try {
+        for (const doc of uploadedDocuments) {
+          // run extraction in background, no await here to avoid blocking
+          pdfService.processDocumentExtraction(doc._id).catch(err => console.error('Background extraction error:', err));
+        }
+      } catch (bgErr) {
+        console.error('Error starting background extraction:', bgErr);
+      }
+    })();
+
     res.status(201).json({
       message: 'Documents uploaded successfully',
       documents: uploadedDocuments
@@ -155,6 +168,17 @@ router.post('/link', [
     });
 
     await document.save();
+
+    // Start background extraction for Drive link
+    (async () => {
+      try {
+        if (document && document._id) {
+          pdfService.processDocumentExtraction(document._id).catch(err => console.error('Background extraction error:', err));
+        }
+      } catch (bgErr) {
+        console.error('Error starting background extraction for link:', bgErr);
+      }
+    })();
 
     return res.status(201).json({
       message: 'Document link saved successfully',

@@ -107,6 +107,30 @@ class GoogleDriveService {
     }
   }
 
+  // Download a file from Google Drive and return a Buffer
+  async downloadFile(fileId) {
+    try {
+      if (!this.drive) {
+        throw new Error('Google Drive API not initialized');
+      }
+
+      const response = await this.drive.files.get(
+        { fileId: fileId, alt: 'media' },
+        { responseType: 'stream' }
+      );
+
+      return await new Promise((resolve, reject) => {
+        const chunks = [];
+        response.data.on('data', (chunk) => chunks.push(chunk));
+        response.data.on('end', () => resolve(Buffer.concat(chunks)));
+        response.data.on('error', (err) => reject(err));
+      });
+    } catch (error) {
+      console.error('Google Drive download error:', error);
+      throw error;
+    }
+  }
+
   async createFolder(folderName, parentFolderId = null) {
     try {
       if (!this.drive) {

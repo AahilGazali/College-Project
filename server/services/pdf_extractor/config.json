@@ -1,5 +1,5 @@
 {
-    "mongodb_uri": "mongodb://localhost:27017",
+    "mongodb_uri": "mongodb+srv://question_paper:Ai_paper@cluster0.4vsnx.mongodb.net/question-paper-generator/documents",
     "database_name": "college_project",
     "google_drive": {
         "credentials_path": "server/google-drive-key.json"
